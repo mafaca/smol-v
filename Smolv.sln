@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smolv", "Smolv\Smolv.csproj", "{12350E7F-0E2D-4FDA-8479-ED4B61B627B5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmolvNETStandard", "Smolv\SmolvNETStandard.csproj", "{5CB9E91E-B73C-4A19-954E-90B8BB7BAD15}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmolvTest", "SmolvTest\SmolvTest.csproj", "{B3A8122A-81F1-4BCF-B9C2-AA4FC8DE18D3}"
 EndProject
 Global
@@ -17,6 +19,10 @@ Global
 		{12350E7F-0E2D-4FDA-8479-ED4B61B627B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12350E7F-0E2D-4FDA-8479-ED4B61B627B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12350E7F-0E2D-4FDA-8479-ED4B61B627B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CB9E91E-B73C-4A19-954E-90B8BB7BAD15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CB9E91E-B73C-4A19-954E-90B8BB7BAD15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CB9E91E-B73C-4A19-954E-90B8BB7BAD15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CB9E91E-B73C-4A19-954E-90B8BB7BAD15}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B3A8122A-81F1-4BCF-B9C2-AA4FC8DE18D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B3A8122A-81F1-4BCF-B9C2-AA4FC8DE18D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3A8122A-81F1-4BCF-B9C2-AA4FC8DE18D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
