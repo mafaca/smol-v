@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace Smolv
 {
@@ -18,6 +19,28 @@ namespace Smolv
 			}
 
 			int size = BitConverter.ToInt32(data, 5 * sizeof(uint));
+			return size;
+		}
+
+		public static int GetDecodedBufferSize(Stream stream)
+		{
+			if (stream == null)
+			{
+				throw new ArgumentNullException(nameof(stream));
+			}
+			if (!stream.CanSeek)
+			{
+				throw new ArgumentException(nameof(stream));
+			}
+			if (stream.Position + HeaderSize > stream.Length)
+			{
+				return 0;
+			}
+
+			long initPosition = stream.Position;
+			stream.Position += HeaderSize - sizeof(uint);
+			int size = stream.ReadByte() | stream.ReadByte() << 8 | stream.ReadByte() << 16 | stream.ReadByte() << 24;
+			stream.Position = initPosition;
 			return size;
 		}
 
@@ -61,37 +84,46 @@ namespace Smolv
 				return false;
 			}
 
-			using (MemoryStream stream = new MemoryStream(output))
+			using (MemoryStream outputStream = new MemoryStream(output))
 			{
-				using (BinaryWriter writer = new BinaryWriter(stream))
-				{
-					return Decode(data, writer);
-				}
+				return Decode(data, outputStream);
 			}
 		}
 
-		public static bool Decode(byte[] data, BinaryWriter output)
+		public static bool Decode(byte[] data, Stream outputStream)
 		{
 			if (data == null)
 			{
 				throw new ArgumentNullException(nameof(data));
 			}
-			if (output == null)
+			using (MemoryStream inputStream = new MemoryStream(data))
 			{
-				throw new ArgumentNullException(nameof(output));
+				return Decode(inputStream, data.Length, outputStream);
 			}
+		}
 
-			int bufferSize = GetDecodedBufferSize(data);
-			if (bufferSize == 0)
+		public static bool Decode(Stream inputStream, int inputSize, Stream outputStream)
+		{
+			if (inputStream == null)
 			{
-				// invalid SMOL-V
+				throw new ArgumentNullException(nameof(inputStream));
+			}
+			if (outputStream == null)
+			{
+				throw new ArgumentNullException(nameof(outputStream));
+			}
+			if (inputStream.Length < HeaderSize)
+			{
 				return false;
 			}
 
-			using (MemoryStream stream = new MemoryStream(data))
+			using (BinaryReader input = new BinaryReader(inputStream, Encoding.UTF8, true))
 			{
-				using (BinaryReader input = new BinaryReader(stream))
+				using (BinaryWriter output = new BinaryWriter(outputStream, Encoding.UTF8, true))
 				{
+					long inputEndPosition = input.BaseStream.Position + inputSize;
+					long outputStartPosition = output.BaseStream.Position;
+
 					// Header
 					output.Write(SpirVHeaderMagic);
 					input.BaseStream.Position += sizeof(uint);
@@ -103,13 +135,12 @@ namespace Smolv
 					output.Write(bound);
 					uint schema = input.ReadUInt32();
 					output.Write(schema);
-					// decode buffer size
-					input.ReadInt32();
+					int decodedSize = input.ReadInt32();
 
 					// Body
 					int prevResult = 0;
 					int prevDecorate = 0;
-					while (input.BaseStream.Position != input.BaseStream.Length)
+					while (input.BaseStream.Position < inputEndPosition)
 					{
 						// read length + opcode
 						if (!ReadLengthOp(input, out uint instrLen, out SpvOp op))
@@ -298,7 +329,7 @@ namespace Smolv
 						}
 					}
 
-					if (output.BaseStream.Position != bufferSize)
+					if (output.BaseStream.Position != outputStartPosition + decodedSize)
 					{
 						// something went wrong during decoding? we should have decoded to exact output size
 						return false;
@@ -315,11 +346,6 @@ namespace Smolv
 			{
 				return false;
 			}
-			if (data.Length < 24)
-			{
-				// one more word past header to store decoded length
-				return false;
-			}
 
 			return true;
 		}
@@ -330,7 +356,7 @@ namespace Smolv
 			{
 				return false;
 			}
-			if (data.Length < 5 * sizeof(uint))
+			if (data.Length < HeaderSize)
 			{
 				return false;
 			}
@@ -475,5 +501,7 @@ namespace Smolv
 		/// 'SMOL' ascii
 		/// </summary>
 		public const uint SmolHeaderMagic = 0x534D4F4C;
+
+		private const int HeaderSize = 6 * sizeof(uint);
 	}
 }
