@@ -190,7 +190,7 @@ namespace Smolv
 								return false;
 							}
 
-							int zds = prevDecorate + (int)value;
+							int zds = prevDecorate + unchecked((int)value);
 							output.Write(zds);
 							prevDecorate = zds;
 							ioffs++;
@@ -211,7 +211,7 @@ namespace Smolv
 								return false;
 							}
 
-							int zd = inverted ? ZigDecode(value) : (int)value;
+							int zd = inverted ? ZigDecode(value) : unchecked((int)value);
 							output.Write(prevResult - zd);
 						}
 
