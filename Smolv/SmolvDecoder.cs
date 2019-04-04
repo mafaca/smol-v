@@ -159,99 +159,20 @@ namespace Smolv
 								return false;
 							}
 
-							int zds = prevDecorate + ZigDecode(value);
+							int zds = prevDecorate + (int)value;
 							output.Write(zds);
 							prevDecorate = zds;
 							ioffs++;
 						}
 
-						// MemberDecorate special decoding
-						if (op == SpvOp.MemberDecorate)
-						{
-							if (input.BaseStream.Position >= input.BaseStream.Length)
-							{
-								// broken input
-								return false;
-							}
-
-							int count = input.ReadByte();
-							int prevIndex = 0;
-							int prevOffset = 0;
-							for (int m = 0; m < count; ++m)
-							{
-								// read member index
-								if (!ReadVarint(input, out uint memberIndex))
-								{
-									return false;
-								}
-
-								memberIndex = (uint)(memberIndex + prevIndex);
-								prevIndex = (int)memberIndex;
-
-								// decoration (and length if not common/known)
-								if (!ReadVarint(input, out uint memberDec))
-								{
-									return false;
-								}
-
-								int knownExtraOps = DecorationExtraOps((int)memberDec);
-								uint memberLen;
-								if (knownExtraOps == -1)
-								{
-									if (!ReadVarint(input, out memberLen))
-									{
-										return false;
-									}
-									memberLen += 4;
-								}
-								else
-								{
-									memberLen = (uint)(4 + knownExtraOps);
-								}
-
-								// write SPIR-V op+length (unless it's first member decoration, in which case it was written before)
-								if (m != 0)
-								{
-									output.Write((memberLen << 16) | (uint)op);
-									output.Write(prevDecorate);
-								}
-								output.Write(memberIndex);
-								output.Write(memberDec);
-
-								// Special case for Offset decorations
-								if (memberDec == 35) // Offset
-								{
-									if (memberLen != 5)
-									{
-										return false;
-									}
-									if (!ReadVarint(input, out uint value))
-									{
-										return false;
-									}
-
-									value = (uint)(value + prevOffset);
-									output.Write(value);
-									prevOffset = (int)value;
-								}
-								else
-								{
-									for (int i = 4; i < memberLen; ++i)
-									{
-										if (!ReadVarint(input, out uint value))
-										{
-											return false;
-										}
-
-										output.Write(value);
-									}
-								}
-							}
-							continue;
-						}
-
 						// Read this many IDs, that are relative to result ID
 						int relativeCount = op.OpDeltaFromResult();
+						bool inverted = false;
+						if (relativeCount < 0)
+						{
+							inverted = true;
+							relativeCount = -relativeCount;
+						}
 						for (int i = 0; i < relativeCount && ioffs < instrLen; ++i, ++ioffs)
 						{
 							if (!ReadVarint(input, out uint value))
@@ -259,14 +180,14 @@ namespace Smolv
 								return false;
 							}
 
-							int zd = ZigDecode(value);
+							int zd = inverted ? ZigDecode(value) : (int)value;
 							output.Write(prevResult - zd);
 						}
 
 						if (wasSwizzle && instrLen <= 9)
 						{
 							uint swizzle = input.ReadByte();
-							if (instrLen > 5) output.Write((swizzle >> 6) & 3);
+							if (instrLen > 5) output.Write(swizzle >> 6);
 							if (instrLen > 6) output.Write((swizzle >> 4) & 3);
 							if (instrLen > 7) output.Write((swizzle >> 2) & 3);
 							if (instrLen > 8) output.Write(swizzle & 3);
@@ -467,7 +388,7 @@ namespace Smolv
 
 		private static int ZigDecode(uint u)
 		{
-			return (u & 1) != 0 ? unchecked((int)((u >> 1) ^ ~0)) : unchecked((int)(u >> 1));
+			return (u & 1) != 0 ? unchecked((int)(~(u >> 1))) : unchecked((int)(u >> 1));
 		}
 
 		public const uint SpirVHeaderMagic = 0x07230203;
