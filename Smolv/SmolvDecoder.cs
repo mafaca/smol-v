@@ -341,57 +341,108 @@ namespace Smolv
 		/// </summary>
 		private static SpvOp RemapOp(SpvOp op)
 		{
-			// 0: 24%
-			if (op == SpvOp.Decorate) return SpvOp.Nop;
-			if (op == SpvOp.Nop) return SpvOp.Decorate;
-			// 1: 17%
-			if (op == SpvOp.Load) return SpvOp.Undef;
-			if (op == SpvOp.Undef) return SpvOp.Load;
-			// 2: 9%
-			if (op == SpvOp.Store) return SpvOp.SourceContinued;
-			if (op == SpvOp.SourceContinued) return SpvOp.Store;
-			// 3: 7.2%
-			if (op == SpvOp.AccessChain) return SpvOp.Source;
-			if (op == SpvOp.Source) return SpvOp.AccessChain;
-			// 4: 5.0%
-			// Name - already small enum value - 5: 4.4%
-			// MemberName - already small enum value - 6: 2.9% 
-			if (op == SpvOp.VectorShuffle) return SpvOp.SourceExtension;
-			if (op == SpvOp.SourceExtension) return SpvOp.VectorShuffle;
-			// 7: 4.0%
-			if (op == SpvOp.MemberDecorate) return SpvOp.String;
-			if (op == SpvOp.String) return SpvOp.MemberDecorate;
-			// 8: 0.9%
-			if (op == SpvOp.Label) return SpvOp.Line;
-			if (op == SpvOp.Line) return SpvOp.Label;
-			// 9: 3.9%
-			if (op == SpvOp.Variable) return (SpvOp)9;
-			if (op == (SpvOp)9) return SpvOp.Variable;
-			// 10: 3.9%
-			if (op == SpvOp.FMul) return SpvOp.Extension;
-			if (op == SpvOp.Extension) return SpvOp.FMul;
-			// 11: 2.5%
-			// ExtInst - already small enum value - 12: 1.2%
-			// VectorShuffleCompact - already small enum value - used for compact shuffle encoding
-			if (op == SpvOp.FAdd) return SpvOp.ExtInstImport;
-			if (op == SpvOp.ExtInstImport) return SpvOp.FAdd;
-			// 14: 2.2%
-			if (op == SpvOp.TypePointer) return SpvOp.MemoryModel;
-			if (op == SpvOp.MemoryModel) return SpvOp.TypePointer;
-			// 15: 1.1%
-			if (op == SpvOp.FNegate) return SpvOp.EntryPoint;
-			if (op == SpvOp.EntryPoint) return SpvOp.FNegate;
+			switch (op)
+			{
+				// 0: 24%
+				case SpvOp.Decorate:
+					return SpvOp.Nop;
+				case SpvOp.Nop:
+					return SpvOp.Decorate;
+
+				// 1: 17%
+				case SpvOp.Load:
+					return SpvOp.Undef;
+				case SpvOp.Undef:
+					return SpvOp.Load;
+
+				// 2: 9%
+				case SpvOp.Store:
+					return SpvOp.SourceContinued;
+				case SpvOp.SourceContinued:
+					return SpvOp.Store;
+
+				// 3: 7.2%
+				case SpvOp.AccessChain:
+					return SpvOp.Source;
+				case SpvOp.Source:
+					return SpvOp.AccessChain;
+
+				// 4: 5.0%
+				// Name - already small enum value - 5: 4.4%
+				// MemberName - already small enum value - 6: 2.9% 
+				case SpvOp.VectorShuffle:
+					return SpvOp.SourceExtension;
+				case SpvOp.SourceExtension:
+					return SpvOp.VectorShuffle;
+
+				// 7: 4.0%
+				case SpvOp.MemberDecorate:
+					return SpvOp.String;
+				case SpvOp.String:
+					return SpvOp.MemberDecorate;
+
+				// 8: 0.9%
+				case SpvOp.Label:
+					return SpvOp.Line;
+				case SpvOp.Line:
+					return SpvOp.Label;
+
+				// 9: 3.9%
+				case SpvOp.Variable:
+					return (SpvOp)9;
+				case (SpvOp)9:
+					return SpvOp.Variable;
+
+				// 10: 3.9%
+				case SpvOp.FMul:
+					return SpvOp.Extension;
+				case SpvOp.Extension:
+					return SpvOp.FMul;
+
+				// 11: 2.5%
+				// ExtInst - already small enum value - 12: 1.2%
+				// VectorShuffleCompact - already small enum value - used for compact shuffle encoding
+				case SpvOp.FAdd:
+					return SpvOp.ExtInstImport;
+				case SpvOp.ExtInstImport:
+					return SpvOp.FAdd;
+
+				// 14: 2.2%
+				case SpvOp.TypePointer:
+					return SpvOp.MemoryModel;
+				case SpvOp.MemoryModel:
+					return SpvOp.TypePointer;
+
+				// 15: 1.1%
+				case SpvOp.FNegate:
+					return SpvOp.EntryPoint;
+				case SpvOp.EntryPoint:
+					return SpvOp.FNegate;
+			}
 			return op;
 		}
 
 		private static uint DecodeLen(SpvOp op, uint len)
 		{
 			len++;
-			if (op == SpvOp.VectorShuffle) len += 4;
-			if (op == SpvOp.VectorShuffleCompact) len += 4;
-			if (op == SpvOp.Decorate) len += 2;
-			if (op == SpvOp.Load) len += 3;
-			if (op == SpvOp.AccessChain) len += 3;
+			switch (op)
+			{
+				case SpvOp.VectorShuffle:
+					len += 4;
+					break;
+				case SpvOp.VectorShuffleCompact:
+					len += 4;
+					break;
+				case SpvOp.Decorate:
+					len += 2;
+					break;
+				case SpvOp.Load:
+					len += 3;
+					break;
+				case SpvOp.AccessChain:
+					len += 3;
+					break;
+			}
 			return len;
 		}
 
